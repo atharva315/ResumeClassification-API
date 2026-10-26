@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments and local secrets
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local app/runtime output
+*.log
+ocr_diagnostics/
+resume_test.txt
+resume_image_test.png
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
