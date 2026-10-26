@@ -121,9 +121,9 @@ docs/           Architecture and CI/CD roadmap
 
 ## Model artifact availability
 
-The source archive used to populate this repository did not include the roughly 570.84 MB `model/model.safetensors` file. The inference code requires the complete model folder, including `config.json`, `label_mapping.json`, `model.safetensors`, `tokenizer.json`, and `tokenizer_config.json`.
+The API requires the complete local `model/` directory: `config.json`, `label_mapping.json`, `model.safetensors`, `tokenizer.json`, and `tokenizer_config.json`. The trained weights are approximately 570.84 MB and are **not currently stored in this source repository**.
 
-The weights are intentionally **not replaced with a placeholder or fake model**. A clean source build of the API must not be considered reproducible until the actual weights are added using Git LFS or an approved artifact source and the build is validated. The already-published Docker Hub image remains the known deployment artifact for the currently running service.
+The existing Docker Hub API image contains the trained model and remains the known deployment artifact for the current service. A clean API image build from this repository is not yet reproducible; before enabling API CI/CD, add the genuine checkpoint through Git LFS or an approved artifact source and validate the clean build and model startup. No placeholder weights are used.
 
 ## Privacy and security
 
