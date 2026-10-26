@@ -1,26 +1,26 @@
 # FastAPI inference service
 
-This service loads the locally packaged fine-tuned ModernBERT model at startup and serves resume classification over HTTP. It is intended to run as the private `api` container on the Docker network `resume-net`.
+The API loads a fine-tuned ModernBERT model at application startup and provides resume classification over HTTP. In the deployed application, FastAPI is the private inference service used by the Streamlit frontend and Prometheus.
 
 ## Endpoints
 
 - `GET /` — service information.
-- `GET /health` — model readiness and runtime configuration.
+- `GET /health` — health/model-readiness information.
 - `GET /docs` — interactive OpenAPI documentation.
-- `POST /predict` — classify text passed as `prepared_text`.
-- `POST /predict-file` — extract text from supported resume files and classify.
-- `GET /metrics` — Prometheus metrics. Keep this endpoint on a trusted network.
+- `POST /predict` — classify text submitted as `prepared_text`.
+- `POST /predict-file` — extract text from supported resume files and classify it.
+- `GET /metrics` — Prometheus metrics.
 
-The API accepts PDF, DOCX, TXT, and supported image formats, subject to configured size/page/pixel limits. Tesseract OCR is installed by the Dockerfile for image-based text extraction. The model is loaded once during application startup.
+Supported file formats include PDF, DOCX, TXT and supported image formats, subject to request and extraction limits. Tesseract OCR is included in the container for image text extraction. The model is loaded once at startup; predictions use the prepared-text representation established during training.
 
-## Local validation
+## Tests
 
-From `services/api`, install runtime requirements and development test dependencies, then run `python -m pytest -q tests`. The API tests mock model inference so they do not need to load the full model. A live inference/build test still requires the complete model folder.
+`tests/test_api.py` contains route, validation and extraction regression tests with model loading/inference mocked. The tests do not require the full model weights.
 
-## Model files
+## Model artifacts
 
-The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The trained weights are not currently stored in this source repository; see `model/README.md` for the artifact requirements. Do not publish an API image as release-ready until the genuine checkpoint is available and a clean build plus model startup have been validated.
+The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The trained weights are approximately 570.84 MiB and are not stored in this public Git repository. The verified Docker Hub API image contains the complete model used by the current AWS service.
 
 ## Privacy
 
-Prometheus metrics use fixed, low-cardinality labels and are designed not to include resume text, filenames, user data, or predicted category. Avoid logging request bodies or committing resume samples.
+The application is designed not to persist submitted resumes in a database. Prometheus metrics use fixed, low-cardinality labels rather than resume text or filenames.
