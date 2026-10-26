@@ -1,5 +1,7 @@
 # ResumeClassification
 
+**Author:** [Atharva Gaikwad](https://github.com/atharva315)
+
 ResumeClassification is a resume classification project built around a fine-tuned ModernBERT model. The application separates the user interface from model inference: Streamlit handles resume input, FastAPI serves predictions, and Prometheus/Grafana provide basic service monitoring.
 
 The current application was containerized and deployed to an AWS EC2 instance. Docker Hub stores the API and frontend images used by that deployment. The EC2 instance is stopped when it is not needed for a demo, so the public application and monitoring pages may be offline.
