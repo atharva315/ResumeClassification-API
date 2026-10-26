@@ -1,0 +1,11 @@
+services:
+  streamlit-ui:
+    build:
+      context: ../../services/frontend
+    image: resumeclassification-ui:local
+    container_name: resumeclassification-ui-local
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: http://host.docker.internal:8000
+    ports:
+      - "127.0.0.1:8501:8501"
