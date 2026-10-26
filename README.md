@@ -89,7 +89,24 @@ These figures describe the recorded evaluation, not a guarantee of production ac
 | POST | `/predict-file` | Extract supported resume files and classify |
 | GET | `/metrics` | Prometheus metrics; keep on a trusted network |
 
-For text inference, the UI sends JSON using the `prepared_text` field. The UI expects the API response fields `predicted_category` and `other_categories`.
+For text inference, the UI sends JSON using the `prepared_text` field. The API response includes `predicted_category`, `other_categories`, a prediction message, token-limit/truncation details, inference timings, and the model name. The API may reject short, irrelevant, repetitive, or low-confidence inputs rather than returning a category.
+
+Example text request (the sample includes sufficient resume-related content for the input suitability check):
+
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"prepared_text":"Professional summary: Python developer experienced in building backend applications and REST APIs. Skills include Python, FastAPI, SQL, Docker, AWS, automated testing, debugging and Git. Education: bachelor degree in computer engineering. Experience: developed services, deployed applications, collaborated with product teams, maintained production systems and improved application reliability."}'
+```
+
+Example file request:
+
+```bash
+curl -X POST "http://localhost:8000/predict-file" \
+  -F "file=@./resume.pdf"
+```
+
+Use your own synthetic or authorized test resume file; do not commit personal resume files to the repository.
 
 ## Docker Hub images
 
