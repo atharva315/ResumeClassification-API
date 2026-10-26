@@ -1,32 +1,21 @@
 # Prometheus and Grafana monitoring
 
-The API exposes Prometheus-format metrics at `/metrics`. Keep this endpoint reachable only by trusted monitoring components; do not publish it directly to the public internet.
+FastAPI exposes Prometheus-format metrics at `/metrics`. In the current deployment, Prometheus scrapes the API every 15 seconds and Grafana queries Prometheus to display service metrics.
 
-## Configuration files
+## Prometheus configurations
 
-- `prometheus/aws/prometheus.yml`: scrape target `api:8000`, for Prometheus on the same Docker network as the API. The job name is `resume-api`.
-- `prometheus/local/prometheus.yml`: target `host.docker.internal:8000`, for Docker Desktop when the API is running directly on the Windows host.
+- `prometheus/aws/prometheus.yml` — target `api:8000` on the shared Docker network, with job name `resume-api`.
+- `prometheus/local/prometheus.yml` — target `host.docker.internal:8000` when the API is running on the host and Prometheus runs in Docker Desktop.
 
-Do not interchange these configurations without checking where the API runs.
+These targets represent different network layouts: the EC2 configuration reaches the API by Docker service name, while the local configuration reaches a host process.
 
-## Current EC2 deployment
+## Deployed monitoring topology
 
-The tested instance runs these containers on Docker network `resume-net`:
+- API container: `api`, internal port 8000.
+- Prometheus container: `prometheus`, internal port 9090.
+- Grafana container: `grafana`, host port 3000 restricted by the EC2 security group.
+- UI container: `ui`, public demo port 8501.
 
-- `api` — FastAPI, internal port 8000
-- `prometheus` — scrapes `http://api:8000/metrics` every 15 seconds
-- `grafana` — reads metrics from Prometheus
+The final deployment check showed the `resume-api` target as `up` with no scrape error. Grafana displayed an API availability value of `1` and a request-rate graph showed activity following a test prediction.
 
-Prometheus port 9090 is not host-published. Grafana host port 3000 is restricted by the EC2 security group to the administrator's current IP. The public Streamlit demo uses host port 8501; the API should remain private.
-
-The live Prometheus configuration and data volume on EC2 are active. Committing a config file here does not remotely change the instance. Apply changes to EC2 only through a deliberate deployment step.
-
-## Local monitoring
-
-The local-only Compose file is `../deploy/local/docker-compose.monitoring.yml`. It binds monitoring ports to `127.0.0.1`; set `GRAFANA_ADMIN_PASSWORD` in the environment before starting it. Do not use a default password or expose these ports publicly.
-
-## Dashboard export
-
-The Grafana dashboards currently live in the EC2 Grafana data volume and were created in the Grafana UI. The source archive did not include dashboard JSON or provisioning files. To version dashboards, export JSON from the Grafana UI and commit it under `monitoring/grafana/dashboards/` after reviewing the export for credentials or sensitive URLs.
-
-Never commit Grafana databases, Prometheus time-series data, credentials, or resume content.
+The live Prometheus data and Grafana state reside on the EC2 instance. Runtime time-series data and Grafana database files are not part of this repository.
