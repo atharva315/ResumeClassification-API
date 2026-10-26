@@ -1,0 +1,15 @@
+{
+  "model_source": "/kaggle/working/resume_classification/models/modernbert_recovered_trial1_epoch3",
+  "architecture": "answerdotai/ModernBERT-base",
+  "num_classes": 43,
+  "max_length_tokens": 2048,
+  "test_metrics": {
+    "accuracy": 0.9209,
+    "macro_f1": 0.9212,
+    "weighted_f1": 0.9206,
+    "test_loss": 0.3881,
+    "test_samples": 1188
+  },
+  "input_contract": "prepared_text should match the training dataset's Text_prepared representation.",
+  "created_at": "20261024_133344"
+}
