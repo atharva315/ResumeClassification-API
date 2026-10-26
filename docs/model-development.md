@@ -1,23 +1,14 @@
 # Model development notes
 
-This document summarizes the training workflow recorded in `notebooks/ResumeClassification_Model_Development.ipynb`. The notebook contains the actual preparation and training code; this page records the decisions and aggregate results without publishing resume examples.
+This document summarizes the training workflow recorded in `notebooks/ResumeClassification_Model_Development.ipynb`. The notebook contains the preparation and training code; this page records the technical decisions and aggregate results without reproducing resume examples.
 
 ## Dataset preparation
 
-The notebook loads the training split of `ahmedheakl/resume-atlas` from Hugging Face. The downloaded source snapshot contained 13,389 records across 43 categories.
+The notebook loads the training split of `ahmedheakl/resume-atlas` from Hugging Face. The source snapshot contained 13,389 records across 43 categories.
 
-Preparation included:
+Preparation included checking empty and short records, inspecting category counts, grouping repeated resume text, identifying exact duplicate text with conflicting labels, reviewing high-similarity conflict groups, removing unresolved conflicts/repeats from the prepared data, creating a `Text_prepared` representation and grouped train/validation/test splits, and auditing token lengths for BERT, DistilBERT and ModernBERT.
 
-1. Saving a raw copy before changing the text.
-2. Checking empty/short records and category counts.
-3. Grouping repeated resume text and checking groups assigned to different categories.
-4. Reviewing high-similarity records with conflicting labels using character TF-IDF similarity and token overlap.
-5. Quarantining unresolved label-conflict groups and removing repeat records.
-6. Creating the prepared `Text_prepared` representation and grouped train/validation/test splits.
-7. Verifying that split labels, label mapping and duplicate-group constraints agree.
-8. Auditing token lengths for BERT, DistilBERT and ModernBERT.
-
-The final prepared dataset contained 11,864 records. The saved splits were:
+The final prepared dataset contained 11,864 records:
 
 | Split | Records | Share |
 |---|---:|---:|
@@ -26,11 +17,11 @@ The final prepared dataset contained 11,864 records. The saved splits were:
 | Test | 1,188 | 10.01% |
 | Total | 11,864 | 100% |
 
-The working dataset and split files are not included in this repository because they contain resume text and are large data artifacts. The notebook expects them in the Kaggle workspace path `/kaggle/working/resume_classification`.
+The prepared data and split files remain in the private training workspace because they contain resume text and are large data artifacts. The notebook records paths under `/kaggle/working/resume_classification`.
 
-## Model selection
+## Model comparison
 
-The project first established a fine-tuned BERT-base baseline, then evaluated a fine-tuned ModernBERT-base checkpoint. The training code uses validation metrics to choose checkpoints; the test split is used for final reporting only.
+The project established a fine-tuned BERT-base baseline, then evaluated a fine-tuned ModernBERT-base checkpoint. Model selection used validation metrics; the held-out test split was used for final reporting.
 
 | Metric | BERT-base | ModernBERT-base | Difference |
 |---|---:|---:|---:|
@@ -39,22 +30,23 @@ The project first established a fine-tuned BERT-base baseline, then evaluated a 
 | Macro precision | 87.99% | 92.20% | +4.21 percentage points |
 | Macro recall | 88.16% | 92.60% | +4.44 percentage points |
 | Macro F1 | 87.48% | 92.12% | +4.63 percentage points |
+| Weighted precision | 88.77% | 92.48% | +3.71 percentage points |
+| Weighted recall | 88.30% | 92.09% | +3.79 percentage points |
 | Weighted F1 | 88.08% | 92.06% | +3.98 percentage points |
+| Test loss | 0.5788 | 0.3881 | -0.1906 |
 
-Both runs used the same 1,188 held-out test records and 43 categories. The configured input limits differ: BERT used 512 tokens, while ModernBERT used 2,048. This reflects the intended model-specific inference settings; it is not a comparison where both models see the same maximum context length.
+Both runs used the same 1,188 held-out test records and 43 categories. BERT used a configured 512-token input limit; ModernBERT used 2,048 tokens. This compares the selected model configurations, not both models at the same context length.
 
-The selected ModernBERT checkpoint's manifest records a test loss of 0.3881. The manifest is stored in `services/api/model_manifest.json`.
+The selected ModernBERT checkpoint's test metrics are also recorded in `services/api/model_manifest.json`.
 
 ## Deployed inference configuration
 
 - Base architecture: `answerdotai/ModernBERT-base`
-- Labels: 43
-- Maximum input length: 2,048 tokens
+- Output categories: 43
+- Input limit: 2,048 tokens
 - Serving: FastAPI with CPU inference in the current EC2 image
-- Input: `Text_prepared`-style text for the text route, or supported resume uploads through the file route
+- Input representation: prepared text aligned with the training dataset's `Text_prepared` field
 
-## Reproducing the training work
+## Notebook context
 
-The notebook is Kaggle-oriented and records the saved-workspace workflow, including recovery checks and multiple tuning iterations. It is not a clean, one-click run in a blank environment. Restore the dataset, prepared splits, tokenizers and required checkpoint paths before running the applicable sections. Model tuning requires a GPU and substantial runtime.
-
-The public notebook has no saved cell outputs because the original data-quality outputs included snippets from resume text. Aggregate figures above are from the recorded metrics and manifest; no resume content is reproduced in this document.
+The notebook follows the saved Kaggle workspace used for data preparation, recovery checks and model tuning. It references persisted splits, tokenizer files, training histories and checkpoint directories. Cell outputs have been cleared from the public copy because the original data-quality outputs included resume excerpts. The notebook source remains available; the data and checkpoints are not part of this repository.
