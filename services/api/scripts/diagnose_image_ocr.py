@@ -24,7 +24,7 @@ from PIL import (
     UnidentifiedImageError,
 )
 
-from app import normalize_resume_text, TESSERACT_CMD
+# Allow running this helper from services/api/scripts while importing the API module.\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\n\nfrom app import normalize_resume_text, TESSERACT_CMD
 
 
 API_URL = "http://127.0.0.1:8000/predict"
