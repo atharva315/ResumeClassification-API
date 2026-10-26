@@ -1,13 +1,13 @@
-# Trained model artifact required at runtime
+# ModernBERT model artifact
 
-The API Dockerfile copies this directory into the image, and FastAPI loads the model from this local path with `local_files_only=True`. The full model must be present before building a runnable API image.
-
-Required files (confirmed from the local model inventory):
+The FastAPI service loads a fine-tuned `answerdotai/ModernBERT-base` checkpoint from the local `model/` directory. The runtime expects these files:
 
 - `config.json`
 - `label_mapping.json`
 - `model.safetensors` (approximately 570.84 MiB)
-- `tokenizer.json` (approximately 3.42 MiB)
+- `tokenizer.json`
 - `tokenizer_config.json`
 
-The genuine model files are not currently committed here. Do not create placeholder weights. Add the trained checkpoint through Git LFS or an approved artifact store, then validate a clean Docker build and API startup before enabling API image CI/CD. The root `.gitattributes` is configured for `.safetensors` tracking with Git LFS.
+The public Git repository contains the model manifest and this inventory, but not the large trained weights file. The current Docker Hub API image was built from the complete model bundle and is the verified runtime artifact used by the AWS deployment.
+
+Because the API Dockerfile copies the local `model/` directory, the source checkout alone does not contain every file needed to reproduce that image. The missing weights are not replaced by placeholders.
