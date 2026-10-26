@@ -30,7 +30,7 @@ The current EC2 container names are `ui`, `api`, `prometheus` and `grafana`, con
 
 The model-development notebook records dataset preparation, a BERT baseline, ModernBERT tuning, final held-out evaluation and packaging for inference. See [the notebook](notebooks/ResumeClassification_Model_Development.ipynb) and [model development notes](docs/model-development.md).
 
-The dataset preparation workflow started from the `ahmedheakl/resume-atlas` dataset and used text-duplicate and label-conflict checks before creating grouped splits.
+The dataset preparation workflow started from the [ResumeAtlas dataset on Hugging Face](https://huggingface.co/datasets/ahmedheakl/resume-atlas) and used text-duplicate and label-conflict checks before creating grouped splits.
 
 | Dataset | Records |
 |---|---:|
@@ -81,6 +81,8 @@ BERT was evaluated with a 512-token input limit and ModernBERT with a 2,048-toke
 The text model was trained on the prepared dataset's `Text_prepared` representation. The API normalizes incoming text and has a configured maximum input length of 2,048 tokens. The file route performs extraction before classification; extraction quality can vary with scan quality and document formatting.
 
 ## Docker Hub images
+
+The images were built and tested locally with Docker Desktop for Windows, then pushed to Docker Hub. The existing EC2 containers pull these Docker Hub images; the ECR repositories created during initial setup are not the registry used by the current running deployment.
 
 The following public images are the ones used by the existing deployment:
 
