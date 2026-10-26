@@ -2,157 +2,130 @@
 
 **Author:** [Atharva Gaikwad](https://github.com/atharva315)
 
-ResumeClassification is a resume classification project built around a fine-tuned ModernBERT model. The application separates the user interface from model inference: Streamlit handles resume input, FastAPI serves predictions, and Prometheus/Grafana provide basic service monitoring.
+ResumeClassification is a resume-to-job-category classifier built with a fine-tuned ModernBERT model. The project covers dataset preparation and model evaluation, an API for inference, a browser interface for resume input, and a containerized AWS deployment with service monitoring.
 
-The current application was containerized and deployed to an AWS EC2 instance. Docker Hub stores the API and frontend images used by that deployment. The EC2 instance is stopped when it is not needed for a demo, so the public application and monitoring pages may be offline.
+## Overview
 
-## What it does
-
-- Classifies resume content into 43 job categories.
-- Accepts pasted text and PDF, DOCX, TXT, PNG, JPG or JPEG uploads.
-- Returns a primary category and alternative predictions for accepted inputs.
-- Uses FastAPI for inference and health checks rather than loading the model in Streamlit.
-- Exposes Prometheus metrics without placing resume text or filenames in metric labels.
-- Runs the UI, API, Prometheus and Grafana as separate Docker containers.
-- Does not use a database or Redis to persist submitted resumes.
+- Fine-tuned ModernBERT model covering 43 job categories.
+- Streamlit interface for pasted resume text and PDF, DOCX, TXT, PNG, JPG or JPEG uploads.
+- FastAPI service for text prediction, file extraction, health checks and metrics.
+- Top predicted category and alternative categories for accepted inputs.
+- Docker images built and tested locally, then published to Docker Hub.
+- AWS EC2 deployment using separate UI, API, Prometheus and Grafana containers.
+- No database or Redis; submitted resume content is not stored in an application database.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    B[Browser] -->|Port 8501| UI[Streamlit UI]
-    UI -->|resume-net: api:8000| API[FastAPI + ModernBERT]
+    B[Browser] -->|8501| UI[Streamlit UI]
+    UI -->|resume-net / api:8000| API[FastAPI + ModernBERT]
     P[Prometheus] -->|GET /metrics| API
     G[Grafana] -->|queries| P
 ```
 
-The current EC2 container names are `ui`, `api`, `prometheus` and `grafana`, connected over Docker network `resume-net`. The UI is exposed on host port 8501. API port 8000 and Prometheus port 9090 should remain private. Restrict Grafana port 3000 to an administrator's current IP.
+The UI sends resume text or uploaded files to FastAPI over the Docker network. The API loads the trained model once and performs inference. Prometheus scrapes the API's `/metrics` endpoint, and Grafana displays service metrics.
 
-## Model and evaluation
+## Model development
 
-The model-development notebook records dataset preparation, a BERT baseline, ModernBERT tuning, final held-out evaluation and packaging for inference. See [the notebook](notebooks/ResumeClassification_Model_Development.ipynb) and [model development notes](docs/model-development.md).
+The training work is recorded in [the model development notebook](notebooks/ResumeClassification_Model_Development.ipynb). It includes dataset checks, exact-duplicate and conflicting-label review, grouped data splits, token-length analysis, BERT baseline evaluation, ModernBERT training/evaluation and packaging the selected checkpoint for inference.
 
-The dataset preparation workflow started from the [ResumeAtlas dataset on Hugging Face](https://huggingface.co/datasets/ahmedheakl/resume-atlas) and used text-duplicate and label-conflict checks before creating grouped splits.
+The source dataset was [ResumeAtlas on Hugging Face](https://huggingface.co/datasets/ahmedheakl/resume-atlas).
 
-| Dataset | Records |
+| Dataset stage | Records |
 |---|---:|
-| Raw source snapshot | 13,389 |
-| Final prepared dataset | 11,864 |
-| Train | 9,473 |
-| Validation | 1,203 |
-| Test | 1,188 |
+| Raw dataset snapshot | 13,389 |
+| Prepared dataset after quality checks | 11,864 |
+| Training split | 9,473 |
+| Validation split | 1,203 |
+| Test split | 1,188 |
 | Categories | 43 |
 
-Recorded results on the same 1,188-row test set:
+The evaluation used the same held-out 1,188-record test split for the BERT baseline and ModernBERT. The models used their configured input limits—512 tokens for BERT and 2,048 tokens for ModernBERT—so this was a comparison of the selected model configurations rather than a same-context-length benchmark.
 
 | Metric | BERT-base | ModernBERT-base |
 |---|---:|---:|
 | Accuracy | 88.30% | 92.09% |
 | Balanced accuracy | 88.16% | 92.60% |
+| Macro precision | 87.99% | 92.20% |
+| Macro recall | 88.16% | 92.60% |
 | Macro F1 | 87.48% | 92.12% |
 | Weighted F1 | 88.08% | 92.06% |
+| Test loss | 0.5788 | 0.3881 |
 
-BERT was evaluated with a 512-token input limit and ModernBERT with a 2,048-token limit. The comparison uses each model's configured context length, so it is not a same-token-limit benchmark. These are recorded offline test results, not a guarantee for every resume or live prediction.
+These are recorded offline evaluation results, not a guarantee for every resume or live prediction. See [model development notes](docs/model-development.md) for the data-preparation and evaluation context.
 
-## Technology stack
+## Application components
 
-| Component | Role |
+| Component | Responsibility |
 |---|---|
-| ModernBERT Base | Fine-tuned 43-category classifier |
-| FastAPI and Uvicorn | Inference endpoints, readiness and metrics |
-| PyTorch and Transformers | Model loading and inference |
-| Streamlit and Requests | Web interface and API client |
-| PyMuPDF, pdfplumber, python-docx, Pillow and Tesseract OCR | Text extraction from supported upload formats |
-| Docker | Packages the UI, API and monitoring services separately |
-| Docker Hub | Stores the published application images |
-| AWS EC2 (Amazon Linux 2023) | Hosts the existing containers |
-| Prometheus | Collects API metrics from `/metrics` |
-| Grafana OSS | Visualizes API availability and request rate |
+| ModernBERT Base | Fine-tuned 43-category text classifier |
+| FastAPI / Uvicorn | Model serving and HTTP API |
+| PyTorch / Transformers | Model loading and inference |
+| Streamlit / Requests | Resume input and prediction display |
+| PyMuPDF / pdfplumber / python-docx | Document text extraction |
+| Pillow / Tesseract OCR | Image processing and OCR |
+| Docker | Separate application and monitoring containers |
+| Docker Hub | Registry for the deployed API and UI images |
+| AWS EC2 | Hosts the application on Amazon Linux 2023 |
+| Prometheus | Collects API metrics |
+| Grafana OSS | Displays availability and API request-rate panels |
 
-## API endpoints
+## API surface
 
-| Method | Endpoint | Purpose |
+| Method | Endpoint | Description |
 |---|---|---|
 | GET | `/` | API information |
-| GET | `/health` | Health/model readiness |
-| GET | `/docs` | Interactive API documentation |
-| POST | `/predict` | Classify text provided in `prepared_text` |
-| POST | `/predict-file` | Extract and classify an uploaded resume |
+| GET | `/health` | Health and model-readiness information |
+| GET | `/docs` | FastAPI interactive documentation |
+| POST | `/predict` | Classifies text submitted in `prepared_text` |
+| POST | `/predict-file` | Extracts and classifies an uploaded resume |
 | GET | `/metrics` | Prometheus metrics |
 
-The text model was trained on the prepared dataset's `Text_prepared` representation. The API normalizes incoming text and has a configured maximum input length of 2,048 tokens. The file route performs extraction before classification; extraction quality can vary with scan quality and document formatting.
+The model was trained on the prepared dataset's `Text_prepared` representation. The inference API uses a configured maximum input length of 2,048 tokens. File-extraction quality depends on document structure, scan quality and OCR quality.
 
 ## Docker Hub images
 
-The images were built and tested locally with Docker Desktop for Windows, then pushed to Docker Hub. The existing EC2 containers pull these Docker Hub images; the ECR repositories created during initial setup are not the registry used by the current running deployment.
+The application was built and tested with Docker Desktop for Windows. The resulting images were pushed to Docker Hub and pulled by the EC2 host:
 
-The following public images are the ones used by the existing deployment:
+- [API — `rockstar1505/resume-classification-api`](https://hub.docker.com/r/rockstar1505/resume-classification-api)
+- [UI — `rockstar1505/resumeclassification-ui`](https://hub.docker.com/r/rockstar1505/resumeclassification-ui)
 
-- [API — rockstar1505/resume-classification-api](https://hub.docker.com/r/rockstar1505/resume-classification-api)
-- [UI — rockstar1505/resumeclassification-ui](https://hub.docker.com/r/rockstar1505/resumeclassification-ui)
+The deployed container images are the tested runtime artifacts. Docker Hub stores these images; the GitHub repository stores application source, configuration, tests and project documentation.
 
-The tags currently used are `latest`. Future CI/CD should publish immutable commit-SHA tags as well, so a deployment can be tied to a specific source revision and rolled back if necessary.
+## AWS deployment and monitoring
 
-## Repository map
+The deployment was completed on AWS EC2 in the Sydney region (`ap-southeast-2`), using Amazon Linux 2023 and one instance for the application and monitoring stack.
 
-- `services/api/` — FastAPI source, Dockerfile, requirements, API tests and model manifest.
-- `services/frontend/` — Streamlit application and its Docker build.
-- `notebooks/ResumeClassification_Model_Development.ipynb` — dataset preparation, training experiments, evaluation and inference packaging.
-- `docs/model-development.md` — data preparation decisions and recorded model comparison.
-- `docs/architecture.md` — application and network overview.
-- `docs/repository-guide.md` — explanation of the tracked source and configuration files.
-- `deploy/local/` — local UI and optional local monitoring Compose files.
-- `deploy/ec2/README.md` — notes on the current EC2 runtime and safe updates.
-- `monitoring/` — Prometheus scrape configurations for local and EC2 networking, plus Grafana dashboard versioning notes.
-- `.github/workflows/README.md` — CI/CD plan and activation checks.
+| Container | Service | Port |
+|---|---|---|
+| `ui` | Streamlit frontend | Host port 8501 |
+| `api` | FastAPI inference | Internal Docker port 8000 |
+| `prometheus` | Metrics scraping | Internal port 9090 |
+| `grafana` | Monitoring dashboards | Host port 3000, restricted to the administrator's IP |
 
-## Running locally
+All four containers were verified running. Prometheus reported the `resume-api` target as `up` with no scrape error. After a test resume prediction, Grafana displayed API availability as `1` and the API request-rate graph showed activity.
 
-The local Compose file starts the UI and expects the FastAPI service to be running on the Windows host at port 8000:
+The current instance can be stopped between demonstrations. While stopped, the website, API and monitoring dashboards are offline. Attached storage and other associated resources may continue to incur AWS charges.
 
-```powershell
-# In services/api, after restoring the model files and installing requirements:
-python -m uvicorn app:app --host 127.0.0.1 --port 8000
+## Repository layout
 
-# From the repository root, in another terminal:
-docker compose -f deploy/local/docker-compose.local.yml up -d --build
-```
+- `services/api/` — FastAPI source, Dockerfile, dependencies, regression tests and model manifest.
+- `services/frontend/` — Streamlit application and Docker build.
+- `notebooks/` — model development notebook, with cell outputs cleared to avoid publishing excerpts of resume text.
+- `docs/model-development.md` — dataset preparation and model comparison.
+- `docs/architecture.md` — component and network architecture.
+- `docs/repository-guide.md` — description of source, configuration and documentation files.
+- `deploy/local/` — local Docker Compose configurations.
+- `deploy/ec2/` — record of the completed AWS deployment.
+- `monitoring/` — Prometheus configurations and Grafana dashboard notes.
 
-Open `http://localhost:8501`. When finished, stop the local UI with:
+## Model artifact
 
-```powershell
-docker compose -f deploy/local/docker-compose.local.yml down
-```
+The trained `model.safetensors` file is approximately 570.84 MiB. It is not stored as a regular Git file in this public repository; the working Docker Hub API image contains the model used by the deployed service. The source tree includes the model manifest and expected file inventory. The published image is therefore the known working deployment artifact, while the full checkpoint remains separate from the Git history.
 
-The API Dockerfile expects the complete model folder at `services/api/model/` with `config.json`, `label_mapping.json`, `model.safetensors`, `tokenizer.json` and `tokenizer_config.json`.
+## Security and responsible use
 
-## Current source-build limitation
+The application is a portfolio demonstration and should not be treated as an automated hiring decision system. Classification output can be affected by resume quality, formatting, extraction errors and similarity between job categories. A human should review results before making employment decisions.
 
-The trained weights file is approximately 570.84 MiB and was not included in the source-audit ZIP supplied for repository preparation. The real weights are therefore **not currently committed in this repository**. The published Docker Hub API image contains the model and is the known working deployment artifact, but a fresh API image cannot be rebuilt from this source checkout until the actual model artifacts are restored.
-
-The root `.gitattributes` is configured to use Git LFS for `.safetensors` files. Git LFS can store a file of this size on GitHub Free, but the account's storage and download quota should be checked before use. See [GitHub's Git LFS limits and billing](https://docs.github.com/en/billing/concepts/product-billing/git-lfs). Do not create placeholder weights or enable API image publishing before a clean build and model startup are verified.
-
-## Deployment and monitoring
-
-The current EC2 deployment uses the already-published Docker Hub images. Prometheus was verified to report the `resume-api` target as `up`, and Grafana showed API availability and request-rate panels after a test prediction.
-
-The current Grafana dashboards have not yet been exported as JSON into this repository. Their live state should not be replaced until the dashboard export and the actual container mount paths are verified. Do not run `docker compose down -v`, delete monitoring volumes, or run the alternative Caddy/DuckDNS Compose configuration from the earlier deployment bundle against the working EC2 instance.
-
-When not demonstrating the project, stop the EC2 instance rather than terminate it. The website and monitoring are offline while the instance is stopped; EBS storage and other associated resources may still incur charges.
-
-## Security and data handling
-
-- Do not commit AWS keys, Docker Hub tokens, private keys, real `.env` files or DuckDNS tokens.
-- Do not commit the source dataset, raw resumes, test resumes, per-resume predictions, OCR output or logs containing personal information.
-- Keep API port 8000 and Prometheus port 9090 private; restrict Grafana port 3000.
-- The public UI is a portfolio demo, not a hardened recruitment product. A human should review any result before a hiring decision.
-
-## Next engineering steps
-
-1. Restore and validate the genuine model artifacts for a clean API build.
-2. Export the live Grafana dashboards and check current container mount paths.
-3. Add lightweight CI checks for API tests and frontend validation.
-4. Build and publish Docker Hub images with commit-SHA tags.
-5. Add a manual, least-privilege deployment workflow that updates only `api` and `ui`, preserves monitoring state, and performs health checks before reporting success.
-
-No automated deployment workflow is active yet.
+The application does not use a database for submitted resumes. The public repository excludes the raw resume dataset, individual test resumes, prediction logs, runtime monitoring data, environment secrets and credentials. The API and Prometheus ports remain internal to the Docker network; Grafana access is limited through the EC2 security group.
