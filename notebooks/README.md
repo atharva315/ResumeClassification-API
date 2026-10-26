@@ -1,9 +1,9 @@
-# Notebooks
+# Model development notebook
 
-`ResumeClassification_Model_Development.ipynb` is the project development notebook used for dataset validation, duplicate/conflict review, prepared split verification, BERT baseline training/evaluation, ModernBERT tuning, final evaluation and packaging the inference bundle.
+`ResumeClassification_Model_Development.ipynb` records the Kaggle-based preparation and model development work: ResumeAtlas dataset inspection, duplicate and label-conflict review, grouped split validation, token-length analysis, BERT baseline experiments, ModernBERT training/evaluation, and packaging the selected checkpoint for inference.
 
-It is a record of the actual work carried out in Kaggle, not a single-click training pipeline. It relies on project artifacts under `/kaggle/working/resume_classification`, including the prepared split files and tokenizers. Training cells require a GPU and can run for a long time.
+The notebook references cached data and experiment artifacts under `/kaggle/working/resume_classification`. It represents the development environment and the sequence of experiments carried out there, rather than a self-contained run in a blank environment. Training uses a GPU and can take substantial time.
 
-The committed copy has execution outputs cleared because some original outputs contained excerpts from resumes during data-quality review. The code cells remain; aggregate results are documented in [model development notes](../docs/model-development.md) and `services/api/model_manifest.json`.
+Cell outputs in the committed copy are cleared because some original data-quality outputs contained excerpts from resumes. Aggregate metrics are recorded in `services/api/model_manifest.json` and [the model development notes](../docs/model-development.md).
 
-Do not upload raw resumes, prepared resume datasets, prediction-by-resume CSVs, or outputs containing personal information to this repository.
+The raw training dataset, prepared resume text, per-resume prediction files and training checkpoints are not included in the public repository.
