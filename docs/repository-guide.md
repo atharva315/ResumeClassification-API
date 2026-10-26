@@ -1,34 +1,38 @@
 # Repository guide
 
-This repository is the source and operations record for the deployed ModernBERT ResumeClassification application.
+This repository contains the source, training record, deployment configuration and monitoring notes for the ModernBERT ResumeClassification application.
 
 ## Application source
 
-- `services/api/app.py` — FastAPI routes, model loading, prediction preprocessing, file extraction and Prometheus metrics.
-- `services/api/Dockerfile` — API runtime image definition, including Tesseract OCR and the local model directory.
-- `services/api/requirements.txt` — API runtime dependencies.
-- `services/api/requirements-dev.txt` — test dependencies on top of runtime dependencies.
-- `services/api/tests/test_api.py` — API regression tests that mock model inference and exercise routes and extraction behavior.
-- `services/api/scripts/diagnose_image_ocr.py` — local diagnostic utility for inspecting OCR quality; it may write extracted text, so generated diagnostic files should be kept private.
-- `services/api/model_manifest.json` — model architecture, label count, token limit and recorded evaluation metrics.
-- `services/api/model/README.md` — required model artifact inventory and the current checkpoint availability note.
+- `services/api/app.py` — FastAPI routes, model loading, preprocessing, document/image extraction and Prometheus metrics.
+- `services/api/Dockerfile` — API image definition, including Tesseract OCR and the expected local model directory.
+- `services/api/requirements.txt` — runtime dependencies for the inference service.
+- `services/api/requirements-dev.txt` — additional dependencies for API regression tests.
+- `services/api/tests/test_api.py` — tests for the API routes and extraction behavior with inference mocked.
+- `services/api/scripts/diagnose_image_ocr.py` — diagnostic utility for comparing OCR extraction quality. Diagnostic output can contain extracted resume text and should be kept private.
+- `services/api/model_manifest.json` — model architecture, category count, configured context length and recorded test metrics.
+- `services/api/model/README.md` — expected trained-model file inventory.
 
-- `services/frontend/streamlit_app.py` — UI for text input and resume file upload; calls the API rather than loading a model in the UI process.
-- `services/frontend/Dockerfile` and `requirements.txt` — UI image and dependencies.
+- `services/frontend/streamlit_app.py` — user interface for text input, file upload and prediction display.
+- `services/frontend/Dockerfile` and `requirements.txt` — UI container and dependencies.
+
+## Model development
+
+- `notebooks/ResumeClassification_Model_Development.ipynb` — Kaggle notebook covering ResumeAtlas data checks, duplicate/conflicting-label review, split creation, token-length analysis, BERT baseline work, ModernBERT fine-tuning/evaluation and inference packaging. Cell outputs are cleared in the committed copy to avoid publishing resume excerpts.
+- `docs/model-development.md` — dataset preparation and the recorded comparison of BERT-base and ModernBERT-base.
+
+The raw and prepared resume datasets, per-resume predictions and training artifacts are not included in this public repository.
 
 ## Deployment and monitoring
 
-- `deploy/local/docker-compose.local.yml` — local UI container for a FastAPI service running directly on the host.
-- `deploy/local/docker-compose.monitoring.yml` — optional local Prometheus/Grafana services, bound to loopback.
-- `deploy/ec2/README.md` — documents the four containers currently running on EC2 and rules for safe updates.
-- `monitoring/prometheus/aws/prometheus.yml` — Prometheus scrape target on the shared Docker network, `api:8000`.
-- `monitoring/prometheus/local/prometheus.yml` — Prometheus target when the API runs on the host and Prometheus runs in Docker Desktop.
-- `monitoring/grafana/README.md` — how to export and version dashboards. The live dashboards remain in the existing Grafana volume until exported.
-- `docs/architecture.md` — component and network map.
-- `docs/cicd-roadmap.md` and `.github/workflows/README.md` — gated CI/CD plan; no publish or deployment workflow is active yet.
+- `deploy/local/docker-compose.local.yml` — local Streamlit container configuration when FastAPI is running on the host.
+- `deploy/local/docker-compose.monitoring.yml` — optional local Prometheus/Grafana services bound to loopback.
+- `deploy/ec2/README.md` — record of the completed EC2 deployment and runtime components.
+- `monitoring/prometheus/aws/prometheus.yml` — scrape configuration for `api:8000` on the shared Docker network.
+- `monitoring/prometheus/local/prometheus.yml` — scrape configuration for an API running on the host with Prometheus in Docker Desktop.
+- `monitoring/grafana/README.md` — Grafana dashboard and persistence information. The live dashboards were created in Grafana; their exported JSON is not currently tracked here.
+- `docs/architecture.md` — application/network overview.
 
-## Files intentionally excluded
+## Repository exclusions
 
-The repository does not contain the full training dataset, individual resume records, generated prediction logs, the full Grafana database, Prometheus time-series data, backups, Python caches, AWS credentials, or real environment files. The model weights are also not committed yet; this is the remaining dependency for rebuilding the API image from source.
-
-See the root README and model-development notes before using any deployment configuration. The alternate Caddy/DuckDNS Compose file from the earlier deployment bundle is not part of the current runtime and must not be launched against the existing EC2 instance.
+The repository excludes the full training dataset, individual resumes, personal test files, per-resume prediction outputs, OCR logs, generated runtime metrics, Docker image layers, credentials, private keys, real environment files and Python cache artifacts. The large trained model weights are not checked into Git; the currently deployed Docker Hub API image is the verified runnable artifact containing them.
