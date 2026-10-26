@@ -1,6 +1,0 @@
-File                        SizeMB
-model\config.json                <1
-model\label_mapping.json         <1
-model\model.safetensors     570.84
-model\tokenizer.json          3.42
-model\tokenizer_config.json      <1
