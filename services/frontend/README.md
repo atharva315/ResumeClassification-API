@@ -1,21 +1,13 @@
 # Streamlit frontend
 
-The Streamlit app is the user-facing interface for the ModernBERT resume classifier. It supports pasted resume text and PDF, DOCX, TXT, PNG, JPG and JPEG uploads, then displays the primary category and alternative predictions returned by FastAPI.
+The Streamlit application is the user-facing interface for the ModernBERT resume classifier. It accepts pasted resume text and supported resume documents, sends the input to FastAPI, and displays the category returned by the model along with alternative predictions.
 
-## API connection
+## API contract
 
-The UI reads `API_BASE_URL` from the environment and defaults to `http://api:8000`. That default is appropriate when the UI and API share the Docker network `resume-net`. The local Docker Desktop Compose file overrides it to `http://host.docker.internal:8000` for a host-running API.
+The app reads `API_BASE_URL` from the environment. Its container default is `http://api:8000`, which resolves on the shared Docker network in the current AWS deployment. The local Docker Compose configuration uses `http://host.docker.internal:8000` when the API runs directly on the host.
 
-The UI calls `POST /predict` with JSON containing `prepared_text`, or `POST /predict-file` with the upload in multipart field `file`.
+- Text inference: `POST /predict` with JSON field `prepared_text`.
+- File inference: `POST /predict-file` with the file in multipart field `file`.
+- Response display: uses `predicted_category` and `other_categories` from the API response.
 
-## Build and run
-
-Build context: this directory (`services/frontend`).
-
-```powershell
-docker build -t resumeclassification-ui:local services/frontend
-```
-
-To run locally against an API already listening on the host, use the repository's `deploy/local/docker-compose.local.yml`.
-
-Do not add API credentials or user resume files to the frontend source. Submitted content is sent to the API for inference; the app does not use a database for persistence.
+The UI does not load the model itself and does not use a database for resume persistence.
