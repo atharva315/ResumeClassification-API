@@ -10,4 +10,4 @@ Required files (confirmed from the local model inventory):
 - `tokenizer.json` (approximately 3.42 MiB)
 - `tokenizer_config.json`
 
-The uploaded source-audit archive intentionally excluded the large weights file, so these model files are not yet committed here. Do not create placeholder weights. Add the genuine checkpoint using Git LFS or an approved artifact store, then validate a clean Docker build and API startup before enabling API image CI/CD. The root `.gitattributes` is configured for `.safetensors` tracking with Git LFS.
+The genuine model files are not currently committed here. Do not create placeholder weights. Add the trained checkpoint through Git LFS or an approved artifact store, then validate a clean Docker build and API startup before enabling API image CI/CD. The root `.gitattributes` is configured for `.safetensors` tracking with Git LFS.
