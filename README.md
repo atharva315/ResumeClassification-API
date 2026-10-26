@@ -51,6 +51,19 @@ Prometheus and the API communicate on the Docker network. The API's port 8000 sh
 | Metrics | prometheus-client and Prometheus |
 | Dashboards | Grafana OSS |
 
+## Dataset preparation
+
+The documented data preparation pipeline started with **13,389 records** and produced **11,864 prepared records** across 43 job categories. The recorded split was:
+
+| Split | Records |
+|---|---:|
+| Train | 9,473 |
+| Validation | 1,203 |
+| Test | 1,188 |
+| **Total prepared** | **11,864** |
+
+Preparation included text cleaning, duplicate handling and train/validation/test splitting. BERT, DistilBERT and ModernBERT fine-tuning approaches were explored; the deployed inference service uses the selected ModernBERT model. Dataset files, raw resumes and training artifacts are not included in this public repository.
+
 ## Model evaluation
 
 The committed model manifest records these evaluation results on 1,188 held-out test samples:
