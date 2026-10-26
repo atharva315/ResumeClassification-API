@@ -4,8 +4,9 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+.ipynb_checkpoints/
 
-# Virtual environments and local secrets
+# Virtual environments and local configuration
 .venv/
 venv/
 env/
@@ -14,14 +15,30 @@ env/
 !.env.example
 *.pem
 *.key
+kaggle.json
 
-# Local app/runtime output
-*.log
-ocr_diagnostics/
+# Local datasets and generated experiment outputs
+data/
+datasets/
+reports/
+outputs/
+evaluation/
+*.parquet
+*.sqlite
+*.sqlite3
+*.db
+*_predictions.csv
+classification_report*.csv
+confusion_matrix*.csv
+
+# Local resume samples and OCR diagnostics
 resume_test.txt
 resume_image_test.png
+ocr_diagnostics/
+*.log
+*.bak
 
-# OS and IDE
+# OS and editor files
 .DS_Store
 Thumbs.db
 .vscode/
