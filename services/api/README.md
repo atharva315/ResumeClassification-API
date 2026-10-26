@@ -19,7 +19,7 @@ From `services/api`, install runtime requirements and development test dependenc
 
 ## Model files
 
-The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The source-audit archive supplied for repository setup did not include the weights; see `model/README.md`. Do not publish a container build as release-ready until these files are provided and validated.
+The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The trained weights are not currently stored in this source repository; see `model/README.md` for the artifact requirements. Do not publish an API image as release-ready until the genuine checkpoint is available and a clean build plus model startup have been validated.
 
 ## Privacy
 
