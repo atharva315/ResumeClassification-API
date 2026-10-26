@@ -1,5 +1,8 @@
-# Grafana dashboard source
+# Grafana dashboards
 
-The deployed Grafana dashboard(s) are currently saved in the persistent `grafana-data` Docker volume. An exported dashboard JSON and provisioning file were not included in the uploaded source archives, so this directory does not yet provision a dashboard automatically.
+The deployed Grafana OSS container is connected to Prometheus and displays API metrics. Two dashboards were created and saved in the live instance:
 
-After the EC2 instance is started, export the tested dashboard(s) from Grafana (Dashboard → Share/Export → Export as JSON) and commit the JSON here. Do not commit Grafana's database, secrets, password files, or generated runtime data. Once an exported dashboard is reviewed, it can be provisioned by Grafana so dashboards are version-controlled.
+- `ResumeClassification API Monitoring` — API request rate.
+- `ResumeClassification Monitoring - Final` — API availability.
+
+The API availability panel showed `1` after the test resume prediction, and the request-rate graph showed activity. The dashboard definitions have not been exported as JSON into this repository. The live Grafana state is associated with the running instance; its exact container mount path has not been independently recorded in this source tree.
