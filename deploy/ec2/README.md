@@ -1,40 +1,36 @@
-# Existing AWS EC2 deployment
+# AWS EC2 deployment record
 
-This document records the working deployment configuration from the verified deployment session. It is documentation only; it does not recreate or alter EC2 infrastructure.
+The application and monitoring stack has been deployed and verified on Amazon EC2. This file records the completed environment and the observed runtime layout.
 
 ## Environment
 
-- Region: `ap-southeast-2` (Sydney).
-- EC2 instance: `ResumeClassificationDemo` (`i-013c63daf6fae128e`).
-- Docker network: `resume-net`.
-- Docker Hub API image: `rockstar1505/resume-classification-api:latest`.
-- Docker Hub UI image: `rockstar1505/resumeclassification-ui:latest`.
-- Containers: `api`, `ui`, `prometheus`, and `grafana`.
+- AWS region: `ap-southeast-2` (Sydney)
+- Operating system: Amazon Linux 2023
+- Instance name: `ResumeClassificationDemo`
+- Docker network: `resume-net`
+- Image registry: Docker Hub
+- API image: `rockstar1505/resume-classification-api:latest`
+- UI image: `rockstar1505/resumeclassification-ui:latest`
 
-## Port and network policy
+## Running services
 
-- Streamlit UI: host TCP 8501, intended to be public for the demo.
-- API: container TCP 8000, available on the Docker network; do not add a public host mapping.
-- Prometheus: container TCP 9090, internal only.
-- Grafana: host TCP 3000, restrict the EC2 security-group source to the administrator's current public IP.
-- SSH (22): keep restricted to the configured administrator/AWS access sources.
+| Container | Service | Exposure |
+|---|---|---|
+| `ui` | Streamlit frontend | Host TCP 8501 |
+| `api` | FastAPI inference service | Container TCP 8000 on `resume-net` |
+| `prometheus` | API metrics collection | Container TCP 9090 on the Docker network |
+| `grafana` | Monitoring dashboards | Host TCP 3000, restricted by the EC2 security group |
 
-The UI uses `API_BASE_URL=http://api:8000`, so `ui` and `api` must share `resume-net`. Prometheus scrapes `http://api:8000/metrics`.
+The UI uses `API_BASE_URL=http://api:8000`. Prometheus scrapes `http://api:8000/metrics`. The API and Prometheus ports are not publicly published. The security group exposes the Streamlit demo and restricts Grafana access to the administrator's public IP.
 
-## Existing container commands
+## Verification record
 
-The current deployment was created using `docker run`, not the Compose file included in the earlier experimental bundle. Previously used equivalent commands were:
+- All four containers were running in the final container check.
+- The Prometheus target `resume-api` reported health `up` with no scrape error.
+- A test resume submission returned a classification through the Streamlit interface.
+- Grafana displayed `API Availability = 1` and a request-rate graph showed activity after the test request.
+- The deployment uses the existing Docker Hub images rather than the experimental Caddy/DuckDNS Compose bundle.
 
-```bash
-sudo docker network create resume-net 2>/dev/null || true
-sudo docker run -d --name api --network resume-net --restart unless-stopped rockstar1505/resume-classification-api:latest
-sudo docker run -d --name ui --network resume-net --restart unless-stopped -p 8501:8501 rockstar1505/resumeclassification-ui:latest
-```
+## Operational notes
 
-These are initial deployment examples, not commands to repeat against an already-running host. Before updating an existing service, pull and validate the new image tag first, save the known-good image tag for rollback, then replace only that app container. Never remove `prometheus` or `grafana` or their named data volumes as part of UI/API deployment.
-
-Prometheus and Grafana were added separately with persistent volumes and `--restart unless-stopped`; preserve their current configuration and data. The EC2 instance may be stopped after demonstrations to reduce compute costs. The app and monitoring are offline while stopped; EBS and other associated resources may still incur charges. The public IP can change after restart.
-
-## Why the experimental AWS Compose is not used
-
-The earlier `docker-compose.aws.yml` expects ECR variables, introduces a different `appnet` network, and adds Caddy plus a DuckDNS updater. Those services are not part of the verified live deployment. Do not run that Compose file on the existing host without an intentional, tested migration.
+The UI, API and monitoring are unavailable while EC2 is stopped. The instance's public IPv4 address can change after starting it again. EBS storage and other associated resources may continue to incur charges while the instance is stopped. The AWS budget is an alert rather than a spending cap.
