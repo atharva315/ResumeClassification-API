@@ -1,0 +1,5 @@
+# Trained model weights should use Git LFS. A pointer without the actual LFS object
+# is insufficient to build and run the API.
+*.safetensors filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
