@@ -2,7 +2,7 @@
 
 These tests mock model inference, so they run quickly without loading the
 large ModernBERT weights. File extraction tests exercise the local parsers.
-Run from the project root: python -m pytest -q test_api.py
+Run from services/api: python -m pytest -q tests
 """
 
 import io
