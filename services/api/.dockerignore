@@ -1,3 +1,4 @@
+# Python environments and caches
 .venv/
 venv/
 __pycache__/
@@ -5,10 +6,31 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Source control and local configuration
 .git/
 .github/
 .env
 .env.*
 !.env.example
+
+# Development-only files not copied by the API Dockerfile
+tests/
+scripts/
+evaluation/
+data/
+datasets/
+reports/
+test_*.py
+diagnose_image_ocr.py
+resume_test.txt
+resume_image_test.png
+*.parquet
+*.csv
+*.sqlite
+*.sqlite3
+*.db
 *.log
-ocr_diagnostics/
+*.bak
+
+# Keep model/ included: the API runtime requires the genuine model files.
