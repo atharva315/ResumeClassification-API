@@ -1,7 +1,7 @@
-"""Automated tests for the Resume Classification FastAPI service.
+"""Automated tests for the current Resume Classification FastAPI service.
 
-These tests mock model inference, so they run quickly without loading the
-large ModernBERT weights. File extraction tests exercise the local parsers.
+The tests mock model loading/inference, so they run without the large model
+checkpoint. Parser tests use synthetic content created in memory.
 Run from services/api: python -m pytest -q tests
 """
 
@@ -9,8 +9,8 @@ import io
 
 import pytest
 import torch
-from fastapi.testclient import TestClient
 from docx import Document
+from fastapi.testclient import TestClient
 import pymupdf
 from PIL import Image
 
@@ -41,7 +41,7 @@ wrote unit tests, maintained code, and collaborated with teams on projects.
 
 
 def strong_probabilities():
-    """Deterministic probability distribution: Python Developer is top class."""
+    """Return deterministic scores with Python Developer as the top class."""
     values = torch.full((43,), 0.14 / 38, dtype=torch.float32)
     values[36] = 0.40  # Python Developer
     values[15] = 0.20  # Data Science
@@ -51,25 +51,16 @@ def strong_probabilities():
     return values
 
 
-def fake_explainer(*args, **kwargs):
-    return (
-        [api.EvidencePhrase(phrase="Skills: Python, FastAPI, Django", keyword="Python")],
-        "Test evidence message.",
-    )
-
-
 @pytest.fixture
-
 def client(monkeypatch):
-    """Set fake loaded model state; do not load actual model weights/lifespan."""
+    """Set fake loaded-model state without loading real model weights."""
     labels = {i: label for i, label in enumerate(LABELS)}
     monkeypatch.setattr(api, "model", object())
     monkeypatch.setattr(api, "tokenizer", object())
     monkeypatch.setattr(api, "id2label", labels)
-    monkeypatch.setattr(api, "label2id", {v: k for k, v in labels.items()})
+    monkeypatch.setattr(api, "label2id", {value: key for key, value in labels.items()})
     monkeypatch.setattr(api, "count_tokens", lambda text: len(text.split()) + 2)
     monkeypatch.setattr(api, "get_probabilities", lambda text: strong_probabilities())
-    monkeypatch.setattr(api, "explain_prediction", fake_explainer)
 
     test_client = TestClient(api.app)
     yield test_client
@@ -92,27 +83,24 @@ def test_health_endpoint_when_model_is_ready(client):
     assert body["max_input_tokens"] == api.MAX_LENGTH
 
 
-def test_predict_returns_one_category_four_ranked_alternatives_and_evidence(client):
+def test_predict_returns_primary_category_and_four_ranked_alternatives(client):
     response = client.post("/predict", json={"prepared_text": VALID_RESUME})
     assert response.status_code == 200
     body = response.json()
 
     assert body["predicted_category"] == "Python Developer"
-    assert "confidence" not in body
     assert len(body["other_categories"]) == 4
-    assert [x["category"] for x in body["other_categories"]] == [
+    assert [item["category"] for item in body["other_categories"]] == [
         "Data Science", "DotNet Developer", "Java Developer", "ETL Developer"
     ]
-    scores = [x["probability"] for x in body["other_categories"]]
+    scores = [item["probability"] for item in body["other_categories"]]
     assert scores == sorted(scores, reverse=True)
-    assert body["evidence_phrases"][0]["keyword"] == "Python"
-    assert "probability" not in body["evidence_phrases"][0]
     assert body["prediction_ms"] >= 0
-    assert body["evidence_ms"] >= 0
     assert body["inference_ms"] >= 0
+    assert body["input_limit_tokens"] == api.MAX_LENGTH
 
 
-def test_low_score_hides_prediction_alternatives_and_evidence(client, monkeypatch):
+def test_low_score_hides_prediction_and_alternatives(client, monkeypatch):
     monkeypatch.setattr(
         api,
         "get_probabilities",
@@ -121,14 +109,12 @@ def test_low_score_hides_prediction_alternatives_and_evidence(client, monkeypatc
     response = client.post("/predict", json={"prepared_text": VALID_RESUME})
     assert response.status_code == 200
     body = response.json()
-
     assert body["predicted_category"] is None
     assert body["other_categories"] == []
-    assert body["evidence_phrases"] == []
     assert "hidden" in body["alternatives_message"].lower()
 
 
-def test_irrelevant_repetitive_text_is_rejected_before_model_inference(client, monkeypatch):
+def test_irrelevant_repetitive_text_is_rejected_before_inference(client, monkeypatch):
     calls = []
 
     def unexpected_inference(text):
@@ -140,12 +126,10 @@ def test_irrelevant_repetitive_text_is_rejected_before_model_inference(client, m
         "/predict",
         json={"prepared_text": ("banana " * 80).strip()},
     )
-
     assert response.status_code == 200
     body = response.json()
     assert body["predicted_category"] is None
     assert body["other_categories"] == []
-    assert body["evidence_phrases"] == []
     assert calls == []
 
 
@@ -167,7 +151,7 @@ def test_txt_file_upload_uses_prediction_pipeline(client, monkeypatch):
     monkeypatch.setattr(api, "extract_resume_text", lambda filename, data: VALID_RESUME)
     response = client.post(
         "/predict-file",
-        files={"file": ("resume.txt", b"ignored by mocked extractor", "text/plain")},
+        files={"file": ("resume.txt", b"synthetic test content", "text/plain")},
     )
     assert response.status_code == 200
     body = response.json()
@@ -184,7 +168,9 @@ def test_unsupported_upload_type_returns_415(client):
 
 
 def test_txt_extraction():
-    text = api.extract_resume_text("resume.txt", b"Skills: Python\r\nExperience: backend development")
+    text = api.extract_resume_text(
+        "resume.txt", b"Skills: Python\r\nExperience: backend development"
+    )
     assert "Skills: Python" in text
     assert "Experience: backend development" in text
 
@@ -198,8 +184,8 @@ def test_docx_extraction_includes_paragraphs_and_table():
 
     buffer = io.BytesIO()
     document.save(buffer)
-
     extracted = api.extract_resume_text("resume.docx", buffer.getvalue())
+
     assert "Experience: Python backend developer" in extracted
     assert "Python FastAPI" in extracted
 
@@ -221,8 +207,8 @@ def test_image_extraction_routes_through_ocr(monkeypatch):
 
     image_buffer = io.BytesIO()
     Image.new("RGB", (200, 100), color="white").save(image_buffer, format="PNG")
-
     extracted = api.extract_resume_text("resume.png", image_buffer.getvalue())
+
     assert "Skills: Python and FastAPI" in extracted
 
 
@@ -243,10 +229,8 @@ def test_run_ocr_uses_configured_layout_mode(monkeypatch):
 
 
 def test_prometheus_metrics_endpoint(client):
-    # Prime a request counter; /metrics itself is intentionally excluded.
     assert client.get("/").status_code == 200
     response = client.get("/metrics")
-
     assert response.status_code == 200
     assert "resume_api_http_requests_total" in response.text
     assert "resume_api_http_request_duration_seconds_bucket" in response.text
