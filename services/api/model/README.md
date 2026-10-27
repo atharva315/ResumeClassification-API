@@ -8,6 +8,4 @@ The FastAPI service loads a fine-tuned `answerdotai/ModernBERT-base` checkpoint 
 - `tokenizer.json`
 - `tokenizer_config.json`
 
-The public Git repository contains the model manifest and this inventory, but not the large trained weights file. The current Docker Hub API image was built from the complete model bundle and is the verified runtime artifact used by the AWS deployment.
-
-Because the API Dockerfile copies the local `model/` directory, the source checkout alone does not contain every file needed to reproduce that image. The missing weights are not replaced by placeholders.
+The full model artifact set is now tracked in this public repository, with `model.safetensors` stored through Git LFS. The model-artifact commit is [7e949f5](https://github.com/atharva315/ResumeClassification-API/commit/7e949f50614a5fda8989c369f33ac88784c46ee1). Clone with Git LFS installed and fetch the LFS object before building the API image. The current Docker Hub API image remains the verified runtime artifact used by the AWS deployment.
