@@ -25,5 +25,29 @@
   "input_contract": "prepared_text should match the training dataset's Text_prepared representation.",
   "evaluated_input_limit_tokens": 2048,
   "created_at": "2026-10-24",
-  "artifact_status": "Model weights are not currently committed to this repository; restore them before building a replacement API image."
+  "artifact_status": "Uploaded to GitHub Git LFS and referenced by the repository commit; local size, SHA-256, and model-loading verification are pending.",
+  "artifact_verification": {
+    "storage": "Git LFS",
+    "expected_size_bytes": 598565908,
+    "expected_sha256": "718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a",
+    "lfs_upload_reported_complete": true,
+    "repository_pointer_present": true,
+    "local_checksum_verified": false,
+    "local_model_load_verified": false
+  },
+  "preprocessing_contract": {
+    "contact_masking": [
+      "email",
+      "URL",
+      "phone-like numeric strings"
+    ],
+    "replacement_tokens": [
+      "[EMAIL]",
+      "[URL]",
+      "[PHONE]"
+    ],
+    "whitespace": "collapse all whitespace to a single space",
+    "implementation": "services/api/app.py::normalize_resume_text",
+    "training_reference": "notebooks/ResumeClassification_Model_Development.ipynb cell 16"
+  }
 }
