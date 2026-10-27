@@ -39,6 +39,8 @@ The project established a fine-tuned BERT-base baseline, then evaluated a fine-t
 
 Both models used the same 1,188 held-out test records and 43 categories. BERT used a configured 512-token input limit; ModernBERT used 2,048 tokens. This compares the selected model configurations rather than both models at the same context length.
 
+The notebook's final comparison cell documents that the BERT metrics were manually transcribed from an earlier displayed evaluation because a saved machine-readable BERT metrics report was not present in the workspace at that point. The BERT numbers should therefore be treated as recorded comparison values; the ModernBERT metrics are also recorded in the model manifest.
+
 ## Serving contract
 
 Training's `prepare_text()` function replaces recognizable contact details with `[EMAIL]`, `[URL]` and `[PHONE]` markers, then collapses whitespace to a single space. The API's `normalize_resume_text()` now applies the same contact masks and whitespace convention, after its Unicode and control-character normalization. Regression tests cover standard and flattened contact formats.
