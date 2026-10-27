@@ -19,3 +19,6 @@ These targets represent different network layouts: the EC2 configuration reaches
 The final deployment check showed the `resume-api` target as `up` with no scrape error. Grafana displayed an API availability value of `1` and a request-rate graph showed activity following a test prediction.
 
 The live Prometheus data and Grafana state reside on the EC2 instance. Runtime time-series data and Grafana database files are not part of this repository.
+
+
+The shared Grafana data-source file at `grafana/provisioning/datasources/prometheus.yml` is mounted by the tracked EC2 and local monitoring Compose definitions. It configures Prometheus as the default data source for a fresh Grafana setup; it does not provision the manually created dashboard panels.
