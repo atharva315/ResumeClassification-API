@@ -69,10 +69,10 @@ def client(monkeypatch):
 
 def test_normalize_resume_text_masks_contact_details_like_training():
     source = (
-        "Contact: jane.doe@example.com\\n"
-        "Website: https://example.com/profile\\n"
-        "LinkedIn: linkedincom/in/janedoe\\n"
-        "Phone: +1 (555) 123-4567\\n"
+        "Contact: jane.doe@example.com\n"
+        "Website: https://example.com/profile\n"
+        "LinkedIn: linkedincom/in/janedoe\n"
+        "Phone: +1 (555) 123-4567\n"
         "Skills: Python, C++, C#, and SQL"
     )
 
@@ -84,7 +84,7 @@ def test_normalize_resume_text_masks_contact_details_like_training():
     assert "jane.doe@example.com" not in normalized
     assert "https://example.com/profile" not in normalized
     assert "+1 (555) 123-4567" not in normalized
-    assert "\\n" not in normalized
+    assert "\n" not in normalized
     assert "C++" in normalized
     assert "C#" in normalized
     assert "SQL" in normalized
