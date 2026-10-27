@@ -35,4 +35,4 @@ The raw and prepared resume datasets, per-resume predictions and training artifa
 
 ## Repository exclusions
 
-The repository excludes the full training dataset, individual resumes, personal test files, per-resume prediction outputs, OCR logs, generated runtime metrics, Docker image layers, credentials, private keys, real environment files and Python cache artifacts. The large trained model weights are not checked into Git; the currently deployed Docker Hub API image is the verified runnable artifact containing them.
+The repository excludes the full training dataset, individual resumes, personal test files, per-resume prediction outputs, OCR logs, generated runtime metrics, Docker image layers, credentials, private keys, real environment files and Python cache artifacts. The selected trained model checkpoint is tracked with Git LFS under `services/api/model/`. The working Docker Hub API image remains the verified artifact used in the EC2 deployment.
