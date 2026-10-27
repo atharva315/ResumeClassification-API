@@ -24,7 +24,7 @@ This repository contains the source, model-development record, deployment config
 - `requirements-training.txt` — separate training/data-preparation dependencies.
 - `docs/model-development.md` — aggregate preparation and evaluation results.
 - `docs/dataset-provenance.md` — dataset origin, recorded counts, and the fact that the historical source revision/checksum was not pinned.
- 
+
 Raw/prepared resume data, per-resume outputs and training artifacts remain outside this public repository.
 
 ## Deployment and monitoring
@@ -36,7 +36,8 @@ Raw/prepared resume data, per-resume outputs and training artifacts remain outsi
 - `deploy/ec2/README.md` — deployment record, observed verification, network/port layout and Compose migration notes.
 - `monitoring/prometheus/aws/prometheus.yml` — scrape target `api:8000` on the shared Docker network.
 - `monitoring/prometheus/local/prometheus.yml` — scrape target `host.docker.internal:8000` for a host-running API with Prometheus in Docker Desktop.
-- `monitoring/grafana/README.md` — description of the saved live dashboards. Dashboard JSON has not been exported into the repository.
+- `monitoring/grafana/provisioning/datasources/prometheus.yml` — default Grafana data source for a fresh Compose deployment.
+- `monitoring/grafana/README.md` — description of the saved live dashboards. Their JSON has not been exported into the repository.
 - `docs/architecture.md` — component and network overview.
 
 ## Excluded data
