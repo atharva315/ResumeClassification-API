@@ -18,4 +18,4 @@ All four containers run on the existing `resume-net` network. API and Prometheus
 
 ## Model and evaluation
 
-The model manifest records an evaluation on 1,188 test samples: accuracy 92.09%, macro F1 92.12%, and weighted F1 92.06%. Treat these as recorded offline evaluation metrics, not guaranteed live performance. The actual model files are large and were excluded from the source-audit archive; a clean source build is pending adding the genuine checkpoint.
+The model manifest records an evaluation on 1,188 test samples: accuracy 92.09%, macro F1 92.12%, and weighted F1 92.06%. Treat these as recorded offline evaluation metrics, not guaranteed live performance. The model and tokenizer files, including the 598,565,908-byte `model.safetensors` checkpoint, are stored in this repository through Git LFS. Local artifact integrity, configuration/tokenizer loading, and real CPU inference checks passed on 2026-10-27. A fresh Docker image build from a clean clone has not been independently verified after the latest source changes; the existing published image remains the tested runtime artifact.
