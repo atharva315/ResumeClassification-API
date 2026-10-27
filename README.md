@@ -124,7 +124,11 @@ The current instance can be stopped between demonstrations. While stopped, the w
 
 ## Model artifacts
 
-The trained `model.safetensors` checkpoint is stored in this public repository using Git LFS, alongside the model configuration, label mapping and tokenizer files. The Git LFS pointer records 598,565,908 bytes and SHA-256 `718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a`; the upload completed successfully, but the local checksum and model-load verification still need to be run with the included verification script. A fresh clone must have Git LFS installed and fetch the LFS object before building the API image. The Dockerfile copies the local `model/` directory into the image.
+The trained `model.safetensors` checkpoint is stored in this public repository using Git LFS, alongside the model configuration, label mapping and tokenizer files. Local verification passed on 2026-10-27: `git lfs fsck` reported OK, the file size matched 598,565,908 bytes, and its SHA-256 matched `718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a`. The model config and tokenizer loaded, and real CPU inference returned 43 finite class probabilities. The included `services/api/scripts/verify_model_artifact.py` reproduces these checks. A fresh clone must have Git LFS installed and fetch the LFS object before building the API image.
+
+## Validation record
+
+The updated API source and mocked regression suite were exercised in a temporary container based on the existing API image, with the checked-out API source and model files mounted. Result: **17 API tests passed** (15.25 seconds reported); the artifact verification script confirmed the checkpoint size and SHA-256, loaded the config/tokenizer, loaded the model and completed CPU inference. This test did not rebuild or publish an image, and it did not update the existing AWS deployment. The optional `tests/test_model_smoke.py` pytest test was not separately invoked; real model inference was exercised by `verify_model_artifact.py --load-model`.
 
 ## Security and responsible use
 
