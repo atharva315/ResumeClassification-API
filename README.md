@@ -82,7 +82,7 @@ These are recorded offline evaluation results, not a guarantee for every resume 
 | POST | `/predict-file` | Extracts and classifies an uploaded resume |
 | GET | `/metrics` | Prometheus metrics |
 
-The model was trained on the prepared dataset's `Text_prepared` representation. The inference API uses a configured maximum input length of 2,048 tokens. File-extraction quality depends on document structure, scan quality and OCR quality.
+The model was trained on the prepared dataset's `Text_prepared` representation. The inference API now applies the notebook's contact-detail masking rules (`[EMAIL]`, `[URL]`, `[PHONE]`) and collapses whitespace to single spaces before tokenization. It uses a configured maximum input length of 2,048 tokens. File-extraction quality depends on document structure, scan quality and OCR quality.
 
 ## Docker Hub images
 
@@ -95,7 +95,7 @@ The deployed container images are the tested runtime artifacts. Docker Hub store
 
 ## AWS deployment and monitoring
 
-The deployment was completed on AWS EC2 in the Sydney region (`ap-southeast-2`), using Amazon Linux 2023 and one instance for the application and monitoring stack.
+The application and monitoring stack were deployed and tested on AWS EC2 in the Sydney region (`ap-southeast-2`), using Amazon Linux 2023 and one instance. The instance was subsequently stopped to reduce compute costs, so this repository does not claim that the public demo is currently online.
 
 | Container | Service | Port |
 |---|---|---|
@@ -122,7 +122,7 @@ The current instance can be stopped between demonstrations. While stopped, the w
 
 ## Model artifacts
 
-The trained `model.safetensors` checkpoint is stored in this public repository using Git LFS, alongside the model configuration, label mapping and tokenizer files. The model-artifact commit is [7e949f5](https://github.com/atharva315/ResumeClassification-API/commit/7e949f50614a5fda8989c369f33ac88784c46ee1). A fresh clone must have Git LFS installed and fetch the LFS object before building the API image. The Dockerfile copies the local `model/` directory into the image.
+The trained `model.safetensors` checkpoint is stored in this public repository using Git LFS, alongside the model configuration, label mapping and tokenizer files. The Git LFS pointer records 598,565,908 bytes and SHA-256 `718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a`; the upload completed successfully, but local checksum and model-load verification still need to be run. A fresh clone must have Git LFS installed and fetch the LFS object before building the API image. The Dockerfile copies the local `model/` directory into the image.
 
 ## Security and responsible use
 
