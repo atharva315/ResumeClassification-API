@@ -251,49 +251,49 @@ def normalize_resume_text(text: str) -> str:
     if not text:
         return ""
     text = unicodedata.normalize("NFKC", str(text))
-    text = text.replace("\\r\\n", "\\n").replace("\\r", "\\n")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     # Remove control/format characters before applying the training masks.
     text = "".join(
         char for char in text
-        if char in "\\n\\t" or unicodedata.category(char)[0] != "C"
+        if char in "\n\t" or unicodedata.category(char)[0] != "C"
     )
 
     # Keep contact masking consistent with prepare_text() in the training
     # notebook. The patterns intentionally remain conservative; they do not
     # attempt to identify names or physical addresses.
     text = re.sub(
-        r"\\b[\\w.+%-]+@[\\w.-]+\\.[A-Za-z]{2,}\\b",
+        r"\b[\w.+%-]+@[\w.-]+\.[A-Za-z]{2,}\b",
         " [EMAIL] ",
         text,
         flags=re.IGNORECASE,
     )
     text = re.sub(
-        r"\\b[\\w.+%-]+(?:gmailcom|yahoocom|hotmailcom|outlookcom|icloudcom)\\b",
+        r"\b[\w.+%-]+(?:gmailcom|yahoocom|hotmailcom|outlookcom|icloudcom)\b",
         " [EMAIL] ",
         text,
         flags=re.IGNORECASE,
     )
     text = re.sub(
-        r"(?:https?://|www\\.)\\S+",
+        r"(?:https?://|www\.)\S+",
         " [URL] ",
         text,
         flags=re.IGNORECASE,
     )
     text = re.sub(
-        r"\\b(?:linkedincom/in/|linkedincom)\\S*",
+        r"\b(?:linkedincom/in/|linkedincom)\S*",
         " [URL] ",
         text,
         flags=re.IGNORECASE,
     )
     text = re.sub(
-        r"(?<!\\w)\\+?\\d[\\d ().-]{6,}\\d(?!\\w)",
+        r"(?<!\w)\+?\d[\d ().-]{6,}\d(?!\w)",
         " [PHONE] ",
         text,
     )
 
-    # Training used re.sub(r"\\s+", " ", text). Keep that single-space
+    # Training used re.sub(r"\s+", " ", text), keeping this single-space
     # contract so multi-line inputs reach the tokenizer like training text.
-    text = re.sub(r"\\s+", " ", text).strip()
+    text = re.sub(r"\s+", " ", text).strip()
     if len(text) > MAX_TEXT_CHARS:
         raise HTTPException(
             status_code=413,
