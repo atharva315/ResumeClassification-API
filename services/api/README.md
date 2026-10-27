@@ -19,7 +19,7 @@ Supported file formats include PDF, DOCX, TXT and supported image formats, subje
 
 ## Model artifacts
 
-The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The trained weights are approximately 570.84 MiB and are not stored in this public Git repository. The verified Docker Hub API image contains the complete model used by the current AWS service.
+The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The trained weights are approximately 570.84 MiB and are tracked with Git LFS in this public repository. Clone with Git LFS installed and make sure the LFS object has been downloaded before building. The verified Docker Hub API image is still the image currently used by the AWS service.
 
 ## Privacy
 
