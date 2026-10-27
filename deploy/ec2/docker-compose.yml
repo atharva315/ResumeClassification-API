@@ -1,0 +1,81 @@
+services:
+  api:
+    image: rockstar1505/resume-classification-api@sha256:dce8b30ecaf72d31ae81782531bbafde579c6120de3e9eaa126d87b207f83559
+    container_name: api
+    restart: unless-stopped
+    expose:
+      - "8000"
+    networks:
+      - resume-net
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+
+  ui:
+    image: rockstar1505/resumeclassification-ui@sha256:200df3781cefeafc8ace6e7b2099a6c8bf35a56e1435be7234de5d1de08f08d3
+    container_name: ui
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    networks:
+      - resume-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ../../monitoring/prometheus/aws/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    expose:
+      - "9090"
+    networks:
+      - resume-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: \${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: \${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in deploy/ec2/.env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - resume-net
+
+networks:
+  resume-net:
+    name: resume-net
+    external: true
+
+volumes:
+  prometheus-data:
+    name: prometheus-data
+    external: true
+  grafana-data:
+    name: grafana-data
+    external: true
