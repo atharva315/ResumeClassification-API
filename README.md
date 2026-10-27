@@ -120,9 +120,9 @@ The current instance can be stopped between demonstrations. While stopped, the w
 - `deploy/ec2/` — record of the completed AWS deployment.
 - `monitoring/` — Prometheus configurations and Grafana dashboard notes.
 
-## Model artifact
+## Model artifacts
 
-The trained `model.safetensors` file is approximately 570.84 MiB. It is not stored as a regular Git file in this public repository; the working Docker Hub API image contains the model used by the deployed service. The source tree includes the model manifest and expected file inventory. The published image is therefore the known working deployment artifact, while the full checkpoint remains separate from the Git history.
+The trained `model.safetensors` checkpoint is stored in this public repository using Git LFS, alongside the model configuration, label mapping and tokenizer files. The model-artifact commit is [7e949f5](https://github.com/atharva315/ResumeClassification-API/commit/7e949f50614a5fda8989c369f33ac88784c46ee1). A fresh clone must have Git LFS installed and fetch the LFS object before building the API image. The Dockerfile copies the local `model/` directory into the image.
 
 ## Security and responsible use
 
