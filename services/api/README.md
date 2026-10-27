@@ -30,7 +30,7 @@ These patterns are approximate and do not attempt to identify every personal ide
 
 ## Model artifact
 
-The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The 598,565,908-byte trained weights file is stored through Git LFS. Its expected SHA-256 is recorded in `model_manifest.json`. The GitHub push reported the LFS upload complete, but the local checksum and model-load validation are still pending.
+The runtime expects `model/config.json`, `model/label_mapping.json`, `model/model.safetensors`, `model/tokenizer.json`, and `model/tokenizer_config.json`. The 598,565,908-byte trained weights file is stored through Git LFS. On 2026-10-27, `git lfs fsck` passed, the local file size and SHA-256 matched the manifest, config/tokenizer loading passed and real CPU inference returned 43 finite class probabilities. The mocked API suite also passed all 17 tests in 15.25 seconds.
 
 ## Runtime and image size
 
