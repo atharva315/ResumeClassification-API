@@ -188,9 +188,8 @@ class PredictRequest(BaseModel):
         min_length=1,
         max_length=MAX_TEXT_CHARS,
         description=(
-            "Resume text. The API applies conservative Unicode and whitespace "
-            "normalization while preserving meaningful words, numbers, punctuation, "
-            "and line breaks."
+            "Resume text. The API applies Unicode normalization, training-consistent "
+            "contact-detail masking and single-space whitespace normalization."
         ),
     )
 class ClassPrediction(BaseModel):
@@ -248,20 +247,53 @@ def resume_input_check(text: str) -> Tuple[bool, str, int]:
 # Input normalization and file extraction
 # ============================================================
 def normalize_resume_text(text: str) -> str:
-    """Normalize extraction artifacts without aggressively changing content."""
+    """Match training-time contact masking while normalizing extracted text."""
     if not text:
         return ""
     text = unicodedata.normalize("NFKC", str(text))
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-    # Remove control/format characters but preserve line breaks and tabs.
+    text = text.replace("\\r\\n", "\\n").replace("\\r", "\\n")
+    # Remove control/format characters before applying the training masks.
     text = "".join(
         char for char in text
-        if char in "\n\t" or unicodedata.category(char)[0] != "C"
+        if char in "\\n\\t" or unicodedata.category(char)[0] != "C"
     )
-    # Collapse horizontal whitespace while retaining section boundaries.
-    lines = [re.sub(r"[ \t\f\v]+", " ", line).strip() for line in text.split("\n")]
-    text = "\n".join(lines)
-    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+
+    # Keep contact masking consistent with prepare_text() in the training
+    # notebook. The patterns intentionally remain conservative; they do not
+    # attempt to identify names or physical addresses.
+    text = re.sub(
+        r"\\b[\\w.+%-]+@[\\w.-]+\\.[A-Za-z]{2,}\\b",
+        " [EMAIL] ",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\\b[\\w.+%-]+(?:gmailcom|yahoocom|hotmailcom|outlookcom|icloudcom)\\b",
+        " [EMAIL] ",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"(?:https?://|www\\.)\\S+",
+        " [URL] ",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"\\b(?:linkedincom/in/|linkedincom)\\S*",
+        " [URL] ",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"(?<!\\w)\\+?\\d[\\d ().-]{6,}\\d(?!\\w)",
+        " [PHONE] ",
+        text,
+    )
+
+    # Training used re.sub(r"\\s+", " ", text). Keep that single-space
+    # contract so multi-line inputs reach the tokenizer like training text.
+    text = re.sub(r"\\s+", " ", text).strip()
     if len(text) > MAX_TEXT_CHARS:
         raise HTTPException(
             status_code=413,
