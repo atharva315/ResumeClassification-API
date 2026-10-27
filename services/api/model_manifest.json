@@ -25,7 +25,7 @@
   "input_contract": "prepared_text should match the training dataset's Text_prepared representation.",
   "evaluated_input_limit_tokens": 2048,
   "created_at": "2026-10-24",
-  "artifact_status": "Verified locally after Git LFS pull and fsck; expected size and SHA-256 matched, tokenizer/config loaded, and real CPU inference passed.",
+  "artifact_status": "Verified locally on 2026-10-27: Git LFS integrity check passed, expected file size and SHA-256 matched, tokenizer/config loaded, and real CPU inference completed successfully with 43 finite class probabilities.",
   "artifact_verification": {
     "storage": "Git LFS",
     "expected_size_bytes": 598565908,
@@ -48,7 +48,21 @@
       "reported_duration_seconds": 15.25
     },
     "validation_date": "2026-10-27",
-    "validation_context": "User-provided PowerShell output: temporary container based on existing API image, with checked-out repository API source/model mounted. No production image rebuilt and no AWS commands run."
+    "validation_context": "User-provided PowerShell output: temporary container based on existing API image, with checked-out repository API source/model mounted. No production image rebuilt and no AWS commands run.",
+    "local_verification_date": "2026-10-27",
+    "local_verification_results": {
+      "git_lfs_fsck": "passed",
+      "model_file_size_bytes": 598565908,
+      "model_file_size_matches": true,
+      "sha256": "718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a",
+      "sha256_matches": true,
+      "label_count": 43,
+      "label_ids_consecutive": true,
+      "tokenizer_config_load": "passed",
+      "real_cpu_inference": "passed",
+      "finite_class_probabilities": 43,
+      "inference_test": "services/api/scripts/verify_model_artifact.py --load-model"
+    }
   },
   "preprocessing_contract": {
     "contact_masking": [
