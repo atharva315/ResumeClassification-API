@@ -49,6 +49,21 @@ def main() -> int:
         print("Install Git LFS and fetch the model object before retrying.", file=sys.stderr)
         return 1
 
+    manifest_path = API_DIR / "model_manifest.json"
+    try:
+        with manifest_path.open(encoding="utf-8") as stream:
+            manifest = json.load(stream)
+        recorded = manifest.get("artifact_verification", {})
+    except Exception as exc:
+        print(f"FAIL: model manifest could not be read: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    if recorded.get("expected_size_bytes") != EXPECTED_WEIGHT_SIZE:
+        print("FAIL: manifest expected_size_bytes does not match the verifier.", file=sys.stderr)
+        return 1
+    if recorded.get("expected_sha256") != EXPECTED_WEIGHT_SHA256:
+        print("FAIL: manifest expected_sha256 does not match the verifier.", file=sys.stderr)
+        return 1
+
     weights = MODEL_DIR / "model.safetensors"
     size = weights.stat().st_size
     if size != EXPECTED_WEIGHT_SIZE:
