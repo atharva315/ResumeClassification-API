@@ -1,14 +1,14 @@
 # Model development notes
 
-This document summarizes the training workflow recorded in `notebooks/ResumeClassification_Model_Development.ipynb`. The notebook contains the preparation and training code; this page records the technical decisions and aggregate results without reproducing resume examples.
+This document summarizes the training workflow recorded in `notebooks/ResumeClassification_Model_Development.ipynb`. The notebook contains the preparation and training code; this page records technical decisions and aggregate results without reproducing resume examples.
 
 ## Dataset preparation
 
-The notebook loads the training split of `ahmedheakl/resume-atlas` from Hugging Face. The source snapshot contained 13,389 records across 43 categories.
+The notebook loads the training split of `ahmedheakl/resume-atlas` from Hugging Face. The saved source snapshot contained 13,389 records across 43 categories.
 
-Preparation included checking empty and short records, inspecting category counts, grouping repeated resume text, identifying exact duplicate text with conflicting labels, reviewing high-similarity conflict groups, removing unresolved conflicts/repeats from the prepared data, creating a `Text_prepared` representation and grouped train/validation/test splits, and auditing token lengths for BERT, DistilBERT and ModernBERT.
+Preparation included checking missing/short records and category counts; grouping repeated text; reviewing exact duplicates with conflicting labels; examining near-duplicate candidates; quarantining unresolved conflicts; preparing the `Text_prepared` representation; creating leakage-aware grouped train/validation/test splits; and auditing token lengths for BERT, DistilBERT and ModernBERT.
 
-The final prepared dataset contained 11,864 records:
+The prepared dataset contained 11,864 records:
 
 | Split | Records | Share |
 |---|---:|---:|
@@ -17,7 +17,9 @@ The final prepared dataset contained 11,864 records:
 | Test | 1,188 | 10.01% |
 | Total | 11,864 | 100% |
 
-The prepared data and split files remain in the private training workspace because they contain resume text and are large data artifacts. The notebook records paths under `/kaggle/working/resume_classification`.
+The prepared data and split files remain in the private training workspace because they contain resume text and are large data artifacts. Their working path is `/kaggle/working/resume_classification`.
+
+The notebook did not pin a Hugging Face dataset revision or record a raw-snapshot checksum at acquisition time. The historical revision and checksum therefore cannot be recovered from this notebook alone; see [dataset provenance](dataset-provenance.md).
 
 ## Model comparison
 
@@ -35,18 +37,14 @@ The project established a fine-tuned BERT-base baseline, then evaluated a fine-t
 | Weighted F1 | 88.08% | 92.06% | +3.98 percentage points |
 | Test loss | 0.5788 | 0.3881 | -0.1906 |
 
-Both runs used the same 1,188 held-out test records and 43 categories. BERT used a configured 512-token input limit; ModernBERT used 2,048 tokens. This compares the selected model configurations, not both models at the same context length.
+Both models used the same 1,188 held-out test records and 43 categories. BERT used a configured 512-token input limit; ModernBERT used 2,048 tokens. This compares the selected model configurations rather than both models at the same context length.
 
-The selected ModernBERT checkpoint's test metrics are also recorded in `services/api/model_manifest.json`.
+## Serving contract
 
-## Deployed inference configuration
-
-- Base architecture: `answerdotai/ModernBERT-base`
-- Output categories: 43
-- Input limit: 2,048 tokens
-- Serving: FastAPI with CPU inference in the current EC2 image
-- Input representation: prepared text aligned with the training dataset's `Text_prepared` field
+Training's `prepare_text()` function replaces recognizable contact details with `[EMAIL]`, `[URL]` and `[PHONE]` markers, then collapses whitespace to a single space. The API's `normalize_resume_text()` now applies the same contact masks and whitespace convention, after its Unicode and control-character normalization. Regression tests cover standard and flattened contact formats.
 
 ## Notebook context
 
-The notebook follows the saved Kaggle workspace used for data preparation, recovery checks and model tuning. It references persisted splits, tokenizer files, training histories and checkpoint directories. Cell outputs have been cleared from the public copy because the original data-quality outputs included resume excerpts. The notebook source remains available; the data and checkpoints are not part of this repository.
+The notebook uses saved Kaggle workspace files, including prepared splits, tokenizer artifacts, model checkpoints, training histories and reports. It is a record of the actual experiment sequence, not a one-click training job in an empty environment. Training requires a compatible GPU and can take substantial time.
+
+Cell outputs are cleared from the public copy because original data-quality output contained resume excerpts. The raw dataset, prepared resume text, per-resume outputs and training checkpoints remain outside the public repository.
