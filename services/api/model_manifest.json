@@ -25,15 +25,30 @@
   "input_contract": "prepared_text should match the training dataset's Text_prepared representation.",
   "evaluated_input_limit_tokens": 2048,
   "created_at": "2026-10-24",
-  "artifact_status": "Uploaded to GitHub Git LFS and referenced by the repository commit; local size, SHA-256, and model-loading verification are pending.",
+  "artifact_status": "Verified locally after Git LFS pull and fsck; expected size and SHA-256 matched, tokenizer/config loaded, and real CPU inference passed.",
   "artifact_verification": {
     "storage": "Git LFS",
     "expected_size_bytes": 598565908,
+    "observed_size_bytes": 598565908,
     "expected_sha256": "718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a",
+    "observed_sha256": "718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a",
     "lfs_upload_reported_complete": true,
     "repository_pointer_present": true,
-    "local_checksum_verified": false,
-    "local_model_load_verified": false
+    "local_git_lfs_fsck": "passed",
+    "local_checksum_verified": true,
+    "config_and_tokenizer_load_verified": true,
+    "label_mapping_verified": "43 consecutive class IDs (0–42)",
+    "local_model_load_verified": true,
+    "real_cpu_inference_verified": true,
+    "inference_output": "43 finite class probabilities; sum approximately 1",
+    "api_regression_tests": {
+      "status": "passed",
+      "passed": 17,
+      "failed": 0,
+      "reported_duration_seconds": 15.25
+    },
+    "validation_date": "2026-10-27",
+    "validation_context": "User-provided PowerShell output: temporary container based on existing API image, with checked-out repository API source/model mounted. No production image rebuilt and no AWS commands run."
   },
   "preprocessing_contract": {
     "contact_masking": [
