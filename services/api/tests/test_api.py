@@ -67,6 +67,42 @@ def client(monkeypatch):
     test_client.close()
 
 
+def test_normalize_resume_text_masks_contact_details_like_training():
+    source = (
+        "Contact: jane.doe@example.com\\n"
+        "Website: https://example.com/profile\\n"
+        "LinkedIn: linkedincom/in/janedoe\\n"
+        "Phone: +1 (555) 123-4567\\n"
+        "Skills: Python, C++, C#, and SQL"
+    )
+
+    normalized = api.normalize_resume_text(source)
+
+    assert "[EMAIL]" in normalized
+    assert "[URL]" in normalized
+    assert "[PHONE]" in normalized
+    assert "jane.doe@example.com" not in normalized
+    assert "https://example.com/profile" not in normalized
+    assert "+1 (555) 123-4567" not in normalized
+    assert "\\n" not in normalized
+    assert "C++" in normalized
+    assert "C#" in normalized
+    assert "SQL" in normalized
+
+
+def test_normalize_resume_text_masks_flattened_contact_patterns():
+    normalized = api.normalize_resume_text(
+        "Email johnsmithgmailcom URL www.example.org Phone 9876543210"
+    )
+
+    assert "[EMAIL]" in normalized
+    assert "[URL]" in normalized
+    assert "[PHONE]" in normalized
+    assert "johnsmithgmailcom" not in normalized
+    assert "www.example.org" not in normalized
+    assert "9876543210" not in normalized
+
+
 def test_root_endpoint(client):
     response = client.get("/")
     assert response.status_code == 200
