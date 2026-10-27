@@ -115,6 +115,7 @@ The current instance can be stopped between demonstrations. While stopped, the w
 - `notebooks/` — model development notebook, with cell outputs cleared to avoid publishing excerpts of resume text.
 - `docs/model-development.md` — dataset preparation and model comparison.
 - `docs/dataset-provenance.md` — source snapshot counts and the unpinned revision/checksum limitation.
+- `docs/licensing.md` — source-code, dataset and base-model licence references.
 - `docs/architecture.md` — component and network architecture.
 - `docs/repository-guide.md` — description of source, configuration and documentation files.
 - `deploy/local/` — local Docker Compose configurations.
