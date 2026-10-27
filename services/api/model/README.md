@@ -8,4 +8,4 @@ The FastAPI service loads a fine-tuned `answerdotai/ModernBERT-base` checkpoint 
 - `tokenizer.json`
 - `tokenizer_config.json`
 
-The full model artifact set is now tracked in this public repository, with `model.safetensors` stored through Git LFS. The model-artifact commit is [7e949f5](https://github.com/atharva315/ResumeClassification-API/commit/7e949f50614a5fda8989c369f33ac88784c46ee1). Clone with Git LFS installed and fetch the LFS object before building the API image. The current Docker Hub API image remains the verified runtime artifact used by the AWS deployment.
+The full model artifact set is tracked in this public repository, with `model.safetensors` stored through Git LFS. The LFS pointer records a size of 598,565,908 bytes and SHA-256 `718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a`. The GitHub push reported the LFS object upload complete. The local object's checksum and successful model load have not yet been independently verified. Use `scripts/verify_model_artifact.py` for those checks. The current Docker Hub API image remains the verified runtime artifact used by the AWS deployment.
