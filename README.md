@@ -114,6 +114,7 @@ The current instance can be stopped between demonstrations. While stopped, the w
 - `services/frontend/` — Streamlit application and Docker build.
 - `notebooks/` — model development notebook, with cell outputs cleared to avoid publishing excerpts of resume text.
 - `docs/model-development.md` — dataset preparation and model comparison.
+- `docs/dataset-provenance.md` — source snapshot counts and the unpinned revision/checksum limitation.
 - `docs/architecture.md` — component and network architecture.
 - `docs/repository-guide.md` — description of source, configuration and documentation files.
 - `deploy/local/` — local Docker Compose configurations.
@@ -122,7 +123,7 @@ The current instance can be stopped between demonstrations. While stopped, the w
 
 ## Model artifacts
 
-The trained `model.safetensors` checkpoint is stored in this public repository using Git LFS, alongside the model configuration, label mapping and tokenizer files. The Git LFS pointer records 598,565,908 bytes and SHA-256 `718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a`; the upload completed successfully, but local checksum and model-load verification still need to be run. A fresh clone must have Git LFS installed and fetch the LFS object before building the API image. The Dockerfile copies the local `model/` directory into the image.
+The trained `model.safetensors` checkpoint is stored in this public repository using Git LFS, alongside the model configuration, label mapping and tokenizer files. The Git LFS pointer records 598,565,908 bytes and SHA-256 `718f1481c6e7b65a043d373766d77c912aefd78648edf38663d6eb52dbeadd5a`; the upload completed successfully, but the local checksum and model-load verification still need to be run with the included verification script. A fresh clone must have Git LFS installed and fetch the LFS object before building the API image. The Dockerfile copies the local `model/` directory into the image.
 
 ## Security and responsible use
 
